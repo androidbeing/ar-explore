@@ -3,72 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-
-<style>
-  .arjs-loader {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .arjs-loader div {
-    text-align: center;
-    font-size: 1.25em;
-    color: white;
-  }
-</style>
-
-
-    <title>AR.js Example</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <title>Touch and Place 3D Object</title>
 </head>
 <body>
-    <body style="margin : 0px; overflow: hidden;">
-        <!-- minimal loader shown until image descriptors are loaded -->
-        <div class="arjs-loader">
-          <div>Loading, please wait...</div>
-        </div>
-        <a-scene
-          vr-mode-ui="enabled: false;"
-          renderer="logarithmicDepthBuffer: true;"
-          embedded
-          arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
-        >
-          <!-- we use cors proxy to avoid cross-origin problems -->
-      
-          <!--
-            ⚠️⚠️⚠️
-            https://arjs-cors-proxy.herokuapp.com/ is now offline, Heroku has dismissed all his free plans from November 2022.
-            You need to host your own proxy and use it instead. The proxy is based on CORS Anywhere (see https://github.com/Rob--W/cors-anywhere).
-            ⚠️⚠️⚠️
-          -->
-      
-          <a-nft
-            type="nft"
-            url="https://arjs-cors-proxy.herokuapp.com/https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-image/trex"
-            smooth="true"
-            smoothCount="10"
-            smoothTolerance=".01"
-            smoothThreshold="5"
-          >
-            <a-entity
-              gltf-model="https://arjs-cors-proxy.herokuapp.com/https://raw.githack.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/scene.gltf"
-              scale="5 5 5"
-              position="50 150 0"
-            >
-            </a-entity>
-          </a-nft>
-          <a-entity camera></a-entity>
-        </a-scene>
-      </body>
+    <a-scene>
+        <!-- Use the cursor component to enable touch interactions -->
+        <a-entity cursor="rayOrigin: mouse" raycaster="objects: .placeable" position="0 0 -1"></a-entity>
+
+        <!-- Place a surface to interact with (in this case, a plane) -->
+        <a-plane class="placeable" rotation="-90 0 0" position="0 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+
+        <!-- Define a marker to show where the object will be placed -->
+        <a-marker id="placement-marker" scale="0.1 0.1 0.1" visible="false">
+            <a-box color="red" position="0 0.5 0"></a-box>
+        </a-marker>
+
+        <!-- Use touchstart event to place the 3D object at the marker position -->
+        <a-entity id="placed-object" geometry="primitive: box; width: 1; height: 1; depth: 1" material="color: blue" position="0 0 0"
+                  visible="false" grabbable></a-entity>
+
+        <!-- Use touchstart event to place the 3D object at the marker position -->
+        <a-plane class="placeable" rotation="-90 0 0" position="0 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+
+        <!-- Register a touchstart event listener to place the object -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var placementMarker = document.getElementById('placement-marker');
+                var placedObject = document.getElementById('placed-object');
+
+                document.addEventListener('touchstart', function (event) {
+                    var touch = event.touches[0];
+                    var cursor = document.querySelector('[cursor]');
+                    var raycaster = cursor.components.raycaster;
+                    var intersection = raycaster.intersectedEls[0];
+
+                    // Check if the cursor is intersecting with a placeable element
+                    if (intersection && intersection.classList.contains('placeable')) {
+                        // Set the marker position to the intersection point
+                        placementMarker.setAttribute('position', intersection.point);
+                        placementMarker.setAttribute('visible', true);
+
+                        // Set the placed object position to the marker position
+                        placedObject.setAttribute('position', intersection.point);
+                        placedObject.setAttribute('visible', true);
+                    }
+                });
+            });
+        </script>
+    </a-scene>
 </body>
 </html>
